@@ -1,0 +1,12 @@
+__pycache__/
+*.pyc
+*.pyo
+*.module-cache*
+.project
+.pydevproject
+.idea
+checklist.txt
+*.json
+*.csv
+build/
+test/
