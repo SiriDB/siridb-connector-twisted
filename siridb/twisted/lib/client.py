@@ -10,6 +10,7 @@ from .factory import SiriFactory
 from . import protomap
 from .exceptions import ServerError
 from .exceptions import PoolError
+from .exceptions import AuthenticationError
 
 # never wait more than x seconds before trying to connect again
 DEFAULT_MAX_WAIT_RETRY = 90
@@ -119,7 +120,11 @@ class SiriDBClientTwisted(object):
         self._retryConnect = True
         result = yield self._connect(timeout)
         if not all([success for success, _ in result]):
-            self._connectLoop()
+            for b, r in result:
+                if isinstance(r.value, (AuthenticationError, IndexError)):
+                    r.raiseException()
+            else:
+                self._connectLoop()
         defer.returnValue(result)
 
     def close(self):

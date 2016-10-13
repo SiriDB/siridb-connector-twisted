@@ -63,7 +63,6 @@ class ClientProtocol(Protocol):
         self._dataPackage = None
 
     def connectionMade(self):
-        print('Here....');
         deferred = self.sendPackage(
             protomap.CPROTO_REQ_AUTH,
             data=(
@@ -137,8 +136,8 @@ class ClientProtocol(Protocol):
         self.transport.write(header + data)
 
     def sendPackage(self, tipe, data=None, timeout=1800):
-        log.err("Send package...{}".format(data))
         self._pid += 1
+        self._pid %= 65536  # pid is handled as uint16_t
         deferred = defer.Deferred()
         self._sendPackage(self._pid, tipe, data)
         task = reactor.callLater(timeout, self.timeoutRequest, self._pid)
