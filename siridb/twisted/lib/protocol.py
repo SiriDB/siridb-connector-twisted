@@ -70,6 +70,7 @@ class ClientProtocol(Protocol):
                 self.factory._password,
                 self.factory._dbname),
             timeout=10)
+        deferred.addErrback(self.factory.onAuthenticationFailed)
         deferred.chainDeferred(self.factory._authDeferred)
 
     def connectionLost(self, *args, **kwargs):
@@ -118,7 +119,8 @@ class ClientProtocol(Protocol):
                       .format(tipe))))(deferred, data)
 
     def timeoutRequest(self, pid):
-        self._requests[pid][0].errback(TimeoutError('Request timed out'))
+        self._requests[pid][0].errback(TimeoutError(
+            'Request timed out on pid: {}'.format(pid)))
         del self._requests[pid]
 
     def _sendPackage(self, pid, tipe, data=None):

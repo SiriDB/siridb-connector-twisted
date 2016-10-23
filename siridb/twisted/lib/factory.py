@@ -34,27 +34,39 @@ class SiriFactory(ClientFactory):
         self.weight = config.get('weight', 1)
         self._triggerConnect = triggerConnect
         self._inactiveTime = inactiveTime
+        self._keepaliveRunning = False
 
     @defer.inlineCallbacks
     def keepaliveLoop(self, interval=45):
-        sleep = interval
-        self.lastResp = time.time()
-        while True:
-            yield task.deferLater(reactor, sleep, lambda: None)
-            if not self.connected:
-                break
-            sleep = \
-                max(0, interval - time.time() + self.lastResp) or interval
-            if sleep == interval:
-                log.msg('Send keep-alive package...', logLevel=logging.DEBUG)
-                try:
-                    yield self.protocol.sendPackage(
-                        protomap.CPROTO_REQ_PING,
-                        timeout=15)
-                except Exception as e:
-                    log.err(e)
-                    self.connector.disconnect()
+        if self._keepaliveRunning:
+            return
+
+        self._keepaliveRunning = True
+
+        try:
+            sleep = interval
+            self.lastResp = time.time()
+
+            while True:
+                yield task.deferLater(reactor, sleep, lambda: None)
+                if not self.connected:
                     break
+                sleep = \
+                    max(0, interval - time.time() + self.lastResp) or interval
+                if sleep == interval:
+                    log.msg(
+                        'Send keep-alive package...',
+                        logLevel=logging.DEBUG)
+                    try:
+                        yield self.protocol.sendPackage(
+                            protomap.CPROTO_REQ_PING,
+                            timeout=15)
+                    except Exception as e:
+                        log.err(e)
+                        self.connector.disconnect()
+                        break
+        finally:
+            self._keepaliveRunning = False
 
     def setAuthDeferred(self):
         self._authDeferred = defer.Deferred()
@@ -84,6 +96,11 @@ class SiriFactory(ClientFactory):
     def onAuthenticated(self, result):
         self.isAvailable = True
         return result
+
+    def onAuthenticationFailed(self, failure):
+        log.err('Authentication failed: {}'.format(failure.getErrorMessage()))
+        self.connector.disconnect()
+        failure.raiseException()
 
     def setAvailable(self):
         if self.connected:

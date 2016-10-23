@@ -114,17 +114,15 @@ class SiriDBClientTwisted(object):
             for _ in range(factory.weight):
                 self._factory_pool.append(factory)
         self._maxWaitRetry = maxWaitRetry
+        self._inConnectLoop = False
 
     @defer.inlineCallbacks
     def connect(self, timeout=DEFAULT_CONNECT_TIMEOUT):
         self._retryConnect = True
         result = yield self._connect(timeout)
-        if not all([success for success, _ in result]):
-            for b, r in result:
-                if isinstance(r.value, (AuthenticationError, IndexError)):
-                    r.raiseException()
-            else:
-                self._connectLoop()
+        if not all([success for success, _ in result]) and \
+                not self._inConnectLoop:
+            self._connectLoop()
         defer.returnValue(result)
 
     def close(self):
@@ -134,7 +132,7 @@ class SiriDBClientTwisted(object):
                 factory.connector.disconnect()
 
     @defer.inlineCallbacks
-    def insert(self, data, timeout=3600):
+    def insert(self, data, timeout=300):
         '''Insert data into SiriDB.
 
         see module doc-string for info on exception handling.
@@ -148,8 +146,9 @@ class SiriDBClientTwisted(object):
                     data,
                     timeout)
             except (ConnectionClosed, ServerError) as e:
-                log.msg('Insert failed with error {!r}, trying another '
-                        'server if one is available...'.format(e),
+                log.msg('Insert failed with error {}, trying another '
+                        'server if one is available...'.format(
+                            getattr(e, 'message', e)),
                         logLevel=logging.DEBUG)
                 if factory.connected:
                     factory.setNotAvailable()
@@ -158,7 +157,7 @@ class SiriDBClientTwisted(object):
                 defer.returnValue(result)
 
     @defer.inlineCallbacks
-    def query(self, query, timePrecision=None, timeout=3600):
+    def query(self, query, timePrecision=None, timeout=60):
         '''Send a query to SiriDB.
 
         see module doc-string for info on exception handling.
@@ -172,8 +171,9 @@ class SiriDBClientTwisted(object):
                         data=(query, timePrecision),
                         timeout=timeout)
             except (ConnectionClosed, ServerError) as e:
-                log.msg('Query failed with error {!r}, trying another '
-                        'server if one is available...'.format(e),
+                log.msg('Query failed with error {}, trying another '
+                        'server if one is available...'.format(
+                            getattr(e, 'message', e)),
                         logLevel=logging.DEBUG)
                 if factory.connected:
                     factory.setNotAvailable()
@@ -206,23 +206,36 @@ class SiriDBClientTwisted(object):
 
     @defer.inlineCallbacks
     def _connectLoop(self):
+        self._inConnectLoop = True
         sleep = 1
         try:
-            while [factory
-                   for factory in self._factories
-                   if not factory.connected]:
+            while self._inConnectLoop:
                 log.msg('Reconnecting in {} seconds...'.format(sleep),
-                        logLevel=logging.DEBUG)
+                    logLevel=logging.DEBUG)
+
                 yield task.deferLater(reactor, sleep, lambda: None)
+
                 if not self._retryConnect:
                     break
-                yield self._connect()
+
+                result = yield self._connect()
+
+                if all([success for success, _ in result]):
+                    self._inConnectLoop = False
+
+                if not self._retryConnect:
+                    break
+
                 sleep = min(sleep * 2, self._maxWaitRetry)
+
         except Exception as e:
-            log.err(e)
+            pass
+
+        finally:
+            self._inConnectLoop = False
 
     def _triggerConnect(self):
-        if self._retryConnect:
+        if self._retryConnect and not self._inConnectLoop:
             self._connectLoop()
 
     def _getRandomConnection(self, tryUnavailable=False):
