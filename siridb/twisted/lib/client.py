@@ -132,7 +132,7 @@ class SiriDBClientTwisted(object):
                 factory.connector.disconnect()
 
     @defer.inlineCallbacks
-    def insert(self, data, timeout=300):
+    def insert(self, data, timeout=120):
         '''Insert data into SiriDB.
 
         see module doc-string for info on exception handling.

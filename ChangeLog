@@ -1,8 +1,12 @@
-2016.18.10, Version 2.0.1 (BETA)
+2016.10.23, Version 2.0.2 (BETA)
+
+    - Fixed bug in re-connect loop. (issue #1)
+
+2016.10.18, Version 2.0.1 (BETA)
 
     - Fixed bug in connector loop
 
-2016.17.10, Version 2.0.0 (BETA)
+2016.10.17, Version 2.0.0 (BETA)
 
     - Initial twisted version for communication with SiriDB 2.0.x
 
