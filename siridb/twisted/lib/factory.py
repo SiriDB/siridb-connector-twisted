@@ -62,7 +62,9 @@ class SiriFactory(ClientFactory):
                             protomap.CPROTO_REQ_PING,
                             timeout=15)
                     except Exception as e:
-                        log.err(e)
+                        log.msg(
+                            'Ping failed: {}'.format(getattr(e, 'message', e)),
+                            logLevel=logging.ERROR)
                         self.connector.disconnect()
                         break
         finally:

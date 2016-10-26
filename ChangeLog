@@ -1,3 +1,7 @@
+2016.10.26, Version 2.0.3 (BETA)
+
+    - Replaced logging failed ping to prevent unhandled error msg. (issue #2)
+
 2016.10.23, Version 2.0.2 (BETA)
 
     - Fixed bug in re-connect loop. (issue #1)
