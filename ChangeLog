@@ -1,3 +1,7 @@
+2016.x.x, Version 2.x.x (BETA)
+
+    - Check for correct types using assert in query method.
+
 2016.10.26, Version 2.0.3 (BETA)
 
     - Replaced logging failed ping to prevent unhandled error msg. (issue #2)

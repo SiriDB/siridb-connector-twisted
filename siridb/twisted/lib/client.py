@@ -162,6 +162,12 @@ class SiriDBClientTwisted(object):
 
         see module doc-string for info on exception handling.
         '''
+        assert isinstance(query, (str, unicode, bytes)), \
+            'query should be of type str, unicode or bytes'
+
+        assert timePrecision is None or isinstance(timePrecision, int), \
+            'timePrecision should be None or an int type.'
+
         tryUnavailable = True
         while True:
             factory = self._getRandomConnection(tryUnavailable)
