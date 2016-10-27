@@ -1,6 +1,6 @@
-2016.x.x, Version 2.x.x (BETA)
+2016.10.27, Version 2.0.4 (BETA)
 
-    - Check for correct types using assert in query method.
+    - Fixed Python 2 to 3 compatibility
 
 2016.10.26, Version 2.0.3 (BETA)
 

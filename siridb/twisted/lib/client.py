@@ -1,3 +1,4 @@
+import sys
 import logging
 import random
 import time
@@ -11,6 +12,8 @@ from . import protomap
 from .exceptions import ServerError
 from .exceptions import PoolError
 from .exceptions import AuthenticationError
+
+STRCMP = (str, bytes) if sys.version_info[0] == 3 else (str, unicode, bytes)
 
 # never wait more than x seconds before trying to connect again
 DEFAULT_MAX_WAIT_RETRY = 90
@@ -132,7 +135,7 @@ class SiriDBClientTwisted(object):
                 factory.connector.disconnect()
 
     @defer.inlineCallbacks
-    def insert(self, data, timeout=120):
+    def insert(self, data, timeout=300):
         '''Insert data into SiriDB.
 
         see module doc-string for info on exception handling.
@@ -162,7 +165,7 @@ class SiriDBClientTwisted(object):
 
         see module doc-string for info on exception handling.
         '''
-        assert isinstance(query, (str, unicode, bytes)), \
+        assert isinstance(query, STRCMP), \
             'query should be of type str, unicode or bytes'
 
         assert timePrecision is None or isinstance(timePrecision, int), \
