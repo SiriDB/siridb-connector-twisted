@@ -1,7 +1,7 @@
 from distutils.core import setup
 import setuptools
 
-VERSION = '2.0.5'
+VERSION = '2.0.6'
 
 setup(
     name='siridb-connector-twisted',

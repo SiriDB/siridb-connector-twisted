@@ -1,3 +1,7 @@
+2016.10.31, Version 2.0.6 (BETA)
+
+    - Add hasConnections() method.
+
 2016.10.31, Version 2.0.5 (BETA)
 
     - Fixed bug in re-connect loop. (issue #4)

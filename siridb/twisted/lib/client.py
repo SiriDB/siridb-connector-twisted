@@ -275,3 +275,11 @@ class SiriDBClientTwisted(object):
                 return random.choice(connections)
 
         raise PoolError('No available connections found')
+
+    @property
+    def hasConnections(self):
+        '''Returns True when having at least one available connection.'''
+        for factory in self._factory_pool:
+            if factory.isAvailable:
+                return True
+        return False
