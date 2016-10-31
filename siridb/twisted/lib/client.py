@@ -229,7 +229,11 @@ class SiriDBClientTwisted(object):
 
                 result = yield self._connect()
 
-                if all([success for success, _ in result]):
+                # We check for positive results and if all are connected
+                # since connections might be destroyed while last async
+                # connect request.
+                if all([success for success, _ in result]) and \
+                   all([factory.connected for factory in self._factories]):
                     self._inConnectLoop = False
 
                 if not self._retryConnect:
