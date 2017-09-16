@@ -8,9 +8,6 @@ applications.
 
 >Warning:
 >--------
->This is still a BETA version and can only be used to connect
->with SiriDB version 2.x
->
 >When using Python 3, package siridb-connector (asyncio) is recommended.
 
 
